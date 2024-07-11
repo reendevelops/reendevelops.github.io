@@ -51,7 +51,6 @@
       <button id="signout_button" onclick="handleSignoutClick()">Sign Out</button>
     </div>
 
-    <!--// TODO: Remove this content and everything that depends on it.-->
     <pre id="content" style="white-space: pre-wrap;"></pre>
 
     <script type="text/javascript">
@@ -60,14 +59,15 @@
       /* exported handleAuthClick */
       /* exported handleSignoutClick */
 
-      // TODO(developer): Set to client ID and API key from the Developer Console
+      // TODO: Set to client ID and API key from the Developer Console
       const CLIENT_ID = '742841291860-fqvlf184eajjrkb3k177o7s8laor26h5.apps.googleusercontent.com';
       const API_KEY = 'AIzaSyD4So5mo-2mTtzkANi1cNd08wlP6OmGOtU';
 
-      // Sheet ID
+      // TODO: Sheet ID (This part from the link: https://docs.google.com/spreadsheets/d/  "1WUl9zSiDBWT84-Z8JKGetNGuxjo1BTgXshqLKMTZfhI"  /edit?gid=1254496383#gid=1254496383)
       const SHEET_ID = '1WUl9zSiDBWT84-Z8JKGetNGuxjo1BTgXshqLKMTZfhI';
-      // Sheet Range
+      // TODO: Sheet Range (The range of the Sheet that you can read from.)
       const SHEET_RANGE = 'Sheet1!A2:D1000';
+
       // Temporary constant of sheet range in number form.
       // TODO: Count the range dynamically.
       const sheetRowCount = 999;
@@ -189,6 +189,7 @@
 
         
         // TESTING SHIT!
+        // TODO: This is where I displayed the data from the sheets. You can remove this entirely and use it as you like.
         const body = document.body;
         const table = document.createElement("table");
         table.style.width = '80%';
