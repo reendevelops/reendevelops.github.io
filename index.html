@@ -1,9 +1,22 @@
 <! DOCTYPE html>
 <html>
-<body>
+<head>
     <h1>hey, i'm Erin Salavaria <br> but you can call me REEN</h1> 
     <p>i'm a data analyst, a programmer,</p>
     <p>and a game developer.</p>
+</head>
+
+<body>
+    <h1>My Web Page</h1>
+    <p id="myParagraph">This is a paragraph.</p>
+
+    <button onclick="changeText()">Click me</button>
+
+    <script>
+        function changeText() {
+            document.getElementById("myParagraph").innerHTML = "Text changed by JavaScript!";
+        }
+    </script>
 </body>
 
 <h2>check out my projects</h2>
