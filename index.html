@@ -1,10 +1,6 @@
 <! DOCTYPE html>
 <html>
 <head>
-    <h1>hey, i'm Erin Salavaria <br> but you can call me REENSSSS</h1>
-    <p>i'm a data analyst, a programmer,</p>
-    <p>and a game developer.</p>
-
     <link rel="stylesheet" href="css/main_background.css">
 </head>
 
@@ -12,24 +8,49 @@
 
     <div class="background">
 
-    </div>
+        <div class="mainIntro">
+            <h1>
+                hey there, i’m <span class="nickName">REEN</span>!
+                <br>well, ordinarily known as <span class="realName">Erin Salavaria</span>.
+            </h1>
+            <p>
+                i'm a data analyst, a programmer,
+                <br>and a <span class="gameDev">game developer</span>.
+            </p>
+        </div>
 
-    <form name="" method="" action="">
-        <input name="button1" type="image" src="img/Button.png" width="716" height="254" onclick="changeText()" />
-    </form>
+        <div class="startButtonContainer">
+            <form name="" method="" action="">
+                <input class="startButton" name="button1" type="image" src="img/button.png" width="716" height="254" onclick="changeText()" />
+            </form>
+        </div>
 
+        <div class="inviteText">
+            <p>
+                <i>
+                    get to know me more?
+                </i>
+            </p>
+        </div>
+
+        <!--
     <h1>My Web Page</h1>
     <p id="myParagraph">This is a paragraph.</p>
 
     <button onclick="changeText()">Click me</button>
 
-    <script>
-        function changeText() {
-            document.getElementById("myParagraph").innerHTML = "Text changed by JavaScript!";
-        }
-    </script>
+    -->
+        <script>
+            function changeText() {
+                document.getElementById("myParagraph").innerHTML = "Text changed by JavaScript!";
+            }
+        </script>
+
+    </div>
+
 </body>
 
+<!--
 <h2>check out my projects</h2>
 <h2>more about me</h2>
 
@@ -38,5 +59,6 @@
 <p>ongoing thesis</p>
 <p>software and QoL tools i developed</p>
 <p>Rancor, SIGMABET., Retraksyon, etc.</p>
+-->
 
 </html>
