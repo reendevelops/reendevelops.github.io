@@ -80,6 +80,13 @@ html, body {
 }
 
 .startButton {
+	background-image: url('./img/button.png');
+	background-size: contain;
+	width: 358px;
+	height: 127px;
+}
+
+.startButton {
 	position: relative;
 	margin: auto;
 	top: 50%;
