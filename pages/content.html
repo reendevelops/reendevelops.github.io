@@ -6,5 +6,87 @@
 
 <body>
     <h1>Begin the journey!</h1>
+    <p id="mouseTest">Mouse press: </p>
+    <p id="position">Circle position: </p>
+
+    <canvas id="myCanvas" width="400" height="300" style="border:1px solid black;"></canvas>
+
+    <script>
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // starting position
+        let circle = { x: 50, y: 150 };
+        let moveSpeed = 2;
+
+        // mouse position
+        let mousePos = { x: 0, y: 0 };
+        let isPressed = false;
+
+        // destination position
+        let target = { x: circle.x, y: circle.y };
+        let distanceAllowance = 5; // how close is close enough
+
+        // Detect mouse movement
+        canvas.addEventListener("mousemove", (event) => {
+            const rect = canvas.getBoundingClientRect(); // canvas position on page
+            mousePos.x = event.clientX - rect.left; // x relative to canvas
+            mousePos.y = event.clientY - rect.top;  // y relative to canvas
+        });
+
+        // Detect mouse press
+        canvas.addEventListener("mousedown", () => {
+            isPressed = true;
+
+            // set target destination on click
+            const rect = canvas.getBoundingClientRect(); // canvas position on page
+            target.x = event.clientX - rect.left; // x relative to canvas
+            target.y = event.clientY - rect.top;  // y relative to canvas
+
+            document.getElementById("mouseTest").innerHTML = "Mouse press: " + target.x + ", " + target.y;
+        });
+
+        // Detect mouse release
+        canvas.addEventListener("mouseup", () => {
+            isPressed = false;
+        });
+
+        function draw() {
+            // clear the previous frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // always move the circle towards the destination
+            const dx = target.x - circle.x;
+            const dy = target.y - circle.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // move circle toward target if not too close
+            if (distance > distanceAllowance) {
+                circle.x += (dx / distance) * moveSpeed;
+                circle.y += (dy / distance) * moveSpeed;
+            }
+            document.getElementById("position").innerHTML = "Circle position: " + circle.x + ", " + circle.y;
+
+            // draw the circle
+            ctx.beginPath();
+            ctx.arc(circle.x, circle.y, 30, 0, Math.PI * 2);
+            ctx.fillStyle = "skyblue";
+            ctx.fill();
+            ctx.closePath();
+
+            // Draw a circle following the mouse
+            ctx.beginPath();
+            ctx.arc(mousePos.x, mousePos.y, 20, 0, Math.PI * 2);
+            ctx.fillStyle = "tomato";
+            ctx.fill();
+
+            // call draw() again for the next frame
+            requestAnimationFrame(draw);
+        }
+
+        // start animation
+        draw();
+    </script>
+
 </body>
 </html>
