@@ -21,7 +21,7 @@
             canvas.height = window.innerHeight;
 
             // starting position
-            let playerPos = { x: 50, y: 150 };
+            let playerPos = { x: 190, y: 420 };
             let moveSpeed = 2;
 
             // mouse position
@@ -84,7 +84,7 @@
                     playerPos.x += (dx / distance) * moveSpeed;
                     playerPos.y += (dy / distance) * moveSpeed;
                 }
-                document.getElementById("position").innerHTML = "Circle position: " + playerPos.x + ", " + playerPos.y;
+                document.getElementById("position").innerHTML = "Player position: " + playerPos.x + ", " + playerPos.y;
 
                 // If player is heading left.
                 if (destination.x < playerPos.x)
