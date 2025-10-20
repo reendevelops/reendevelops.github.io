@@ -1,0 +1,32 @@
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.background {
+    width: 100%;
+    height: 100vh;
+    background-image: url('../img/journey1.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: transparent;
+    display: block; /* remove gaps */
+}
+
+</style>

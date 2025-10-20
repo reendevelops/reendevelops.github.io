@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\css"
+    "\\css",
+    "\\pages"
   ],
-  "SelectedNode": "\\css\\main_background.css",
+  "SelectedNode": "\\pages\\content.html",
   "PreviewInSolutionExplorer": false
 }
