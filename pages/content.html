@@ -12,6 +12,7 @@
         <h1>Begin the journey!</h1>
         <p id="mouseTest">Mouse press: </p>
         <p id="position">Circle position: </p>
+        <p id="hitbox">Hitbox: </p>
 
         <script>
             const canvas = document.getElementById("myCanvas");
@@ -19,6 +20,36 @@
 
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+
+            // define a rect for hitboxes
+            class Hitbox {
+                constructor(x, y, width, height, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.color = color;
+                    this.upperEdge = this.y;
+                    this.lowerEdge = this.y + this.height;
+                    this.leftEdge = this.x;
+                    this.rightEdge = this.x + this.width;
+                    this.upperEdgePos = { x: this.x, y: this.upperEdge };
+                    this.lowerEdgePos = { x: this.x, y: this.lowerEdge };
+                    this.leftEdgePos = { x: this.leftEdge, y: this.y };
+                    this.rightEdgePos = { x: this.rightEdge, y: this.y };
+                }
+            };
+
+            const upperHitbox = new Hitbox(
+                canvas.clientWidth * (1 - 0.99) / 2,
+                canvas.clientHeight / 30,
+                canvas.width * 0.99,
+                canvas.clientHeight / 3,
+                "blue"
+            );
+
+            document.getElementById("hitbox").innerHTML = "Hitbox: " + upperHitbox.upperEdge + " " + upperHitbox.lowerEdge + " " + upperHitbox.leftEdge + " " + upperHitbox.rightEdge;
+
 
             // starting position
             let playerPos = { x: 190, y: 420 };
@@ -31,6 +62,7 @@
             // destination position
             let destination = { x: playerPos.x, y: playerPos.y };
             let distanceAllowance = 5; // how close is close enough
+
 
             // Load your image
             const playerImage_Right = new Image();
@@ -79,6 +111,10 @@
                 const dy = destination.y - playerPos.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
+                // If playerPos is inside a hitbox, move it outside.
+                if (isInsideHitbox(upperHitbox, playerPos))
+                    playerPos = getPositionOutsideHitbox(upperHitbox, playerPos);
+                
                 // move playerPos toward destination if not too close
                 if (distance > distanceAllowance) {
                     playerPos.x += (dx / distance) * moveSpeed;
@@ -92,15 +128,56 @@
                 else
                     ctx.drawImage(playerImage_Right, playerPos.x - playerImage_Right.width / 4, playerPos.y - playerImage_Right.height / 2.5, playerImage_Right.width / 2, playerImage_Right.height / 2);
 
-                // Draw a cirlce following the mouse
+                // Draw a circle following the mouse
                 ctx.beginPath();
                 ctx.arc(mousePos.x, mousePos.y, 20, 0, Math.PI * 2);
                 ctx.fillStyle = "rgba(232, 100, 27, 0.5)";
                 ctx.fill();
 
+                // Draw the hitboxes.
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(upperHitbox.x, upperHitbox.y, upperHitbox.width, upperHitbox.height);
+
                 // call draw() again for the next frame
                 requestAnimationFrame(update);
             }
+
+            function isInsideHitbox(hitbox, canvasPos) {
+                if (canvasPos.x < hitbox.rightEdge && canvasPos.x > hitbox.leftEdge)
+                    if (canvasPos.y > hitbox.upperEdge && canvasPos.y < hitbox.lowerEdge)
+                        return true;
+                return false;
+            }
+
+            function getPositionOutsideHitbox(hitbox, originalPos) {
+                // Get closest edge from originalPos.
+                let closestEdgePos = { x: originalPos.x, y: hitbox.upperEdgePos.y };
+
+                // Lower
+                let lowerEdgePos = { x: originalPos.x, y: hitbox.lowerEdgePos.y };
+                if (distance(originalPos, closestEdgePos) > distance(originalPos, lowerEdgePos))
+                    closestEdgePos = lowerEdgePos;
+
+                // Left
+                let leftEdgePos = { x: hitbox.leftEdgePos.x, y: originalPos.y };
+                if (distance(originalPos, closestEdgePos) > distance(originalPos, leftEdgePos))
+                    closestEdgePos = leftEdgePos;
+
+                // Right
+                let rightEdgePos = { x: hitbox.rightEdgePos.x, y: originalPos.y };
+                if (distance(originalPos, closestEdgePos) > distance(originalPos, rightEdgePos))
+                    closestEdgePos = rightEdgePos;
+
+                return closestEdgePos;
+            }
+
+            function distance(a, b) {
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
 
             // start animation
             update();
