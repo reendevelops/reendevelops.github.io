@@ -22,11 +22,7 @@ html, body {
 }
 
 canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: transparent;
-    display: block; /* remove gaps */
+    border: 1px solid black;
 }
 
 </style>
