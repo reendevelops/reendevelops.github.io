@@ -24,12 +24,14 @@
 
             // Define a rect for hitboxes.
             class Hitbox {
-                constructor(x, y, width, height, color) {
+                constructor(id, x, y, width, height, color, isCollider) {
+                    this.id = id;
                     this.x = x;
                     this.y = y;
                     this.width = width;
                     this.height = height;
                     this.color = color;
+                    this.isCollider = isCollider;
                     this.upperEdge = this.y;
                     this.lowerEdge = this.y + this.height;
                     this.leftEdge = this.x;
@@ -49,8 +51,15 @@
                 }
             }
 
-            // Create the upper hitbox.
-            const upperHitbox = new Hitbox(0, 0, 1920, 400, "blue");
+
+            // [ HITBOXES ]
+            const list_hitboxes = [];
+            const list_activeTriggers = [];
+            const upperHitbox = new Hitbox("upperWall_1", 0, 0, 1920, 400, "black", true);
+            list_hitboxes.push(upperHitbox);
+            const testHitbox = new Hitbox("test_1", 100, 500, 100, 100, "blue", false);
+            list_hitboxes.push(testHitbox);
+
 
             document.getElementById("hitbox").innerHTML = "Hitbox: " + upperHitbox.upperEdge + " " + upperHitbox.lowerEdge + " " + upperHitbox.leftEdge + " " + upperHitbox.rightEdge;
 
@@ -167,9 +176,40 @@
                 const dy = destination.y - playerPos.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                // If playerPos is inside a hitbox, move it outside.
-                if (isInsideHitbox(upperHitbox, playerPos))
-                    playerPos = getPositionOutsideHitbox(upperHitbox, playerPos);
+
+                // Detect if player ACTIVATES a Trigger hitbox.
+                if (isInsideAHitbox(playerPos)) {
+                    let hitbox = getHitboxFromHere(playerPos);
+
+                    // Activate if a Trigger.
+                    if (!hitbox.isCollider) {
+
+                        // Activate whatever result the Trigger does according to its ID.
+                        activateThisTrigger(hitbox);
+                    }
+                }
+
+                // Detect if player DEACTIVATES a Trigger hitbox.
+                for (let i = 0; i < list_activeTriggers.length; i++) {
+                    let trigger = list_activeTriggers[i];
+
+                    // Check each active Trigger if player is no longer on it.
+                    if (!isInsideHitbox(trigger, playerPos)) {
+                        // Remove from active list and DISABLE it.
+                        list_activeTriggers.splice(i, 1);
+                        trigger.color = "blue";
+                    }
+                }
+
+
+                // Prevent the player from passing through Collider hitboxes.
+                if (isInsideACollider(playerPos)) {
+                    let hitbox = getHitboxFromHere(playerPos);
+
+                    // Set the new playerPos.
+                    playerPos = getPositionOutsideHitbox(hitbox, playerPos);
+                }
+
 
                 // Move playerPos toward destination if not too close
                 if (distance > distanceAllowance) {
@@ -191,9 +231,7 @@
                 ctx.fill();
 
                 // Draw the hitboxes.
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(upperHitbox.x, upperHitbox.y, upperHitbox.width, upperHitbox.height);
+                drawAllHitbox(ctx);
 
                 // For the scaling.
                 ctx.restore();
@@ -203,6 +241,20 @@
             }
 
 
+
+            // Draw ALL hitboxes.
+            function drawAllHitbox(ctx) {
+                for (let i = 0; i < list_hitboxes.length; i++) {
+                    let hitbox = list_hitboxes[i];
+
+                    // Adjust colors and width for each hitbox.
+                    ctx.strokeStyle = hitbox.color;
+                    ctx.lineWidth = 2;
+
+                    ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+                }
+            }
+
             // Return what player animation frame should be drawn.
             function getPlayerImage(xDestination, xPlayerPos) {
                 if (xDestination < xPlayerPos) {
@@ -210,6 +262,27 @@
                 }
             }
 
+            // Checks if inside ANY hitbox.
+            function isInsideAHitbox(canvasPos) {
+                for (let i = 0; i < list_hitboxes.length; i++) {
+                    let hitbox = list_hitboxes[i];
+                    if (isInsideHitbox(hitbox, canvasPos))
+                        return true;
+                }
+                return false;
+            }
+
+            // Checks if inside ANY COLLIDER hitbox.
+            function isInsideACollider(canvasPos) {
+                for (let i = 0; i < list_hitboxes.length; i++) {
+                    let hitbox = list_hitboxes[i];
+                    if (isInsideHitbox(hitbox, canvasPos) && hitbox.isCollider)
+                        return true;
+                }
+                return false;
+            }
+
+            // Checks if inside a SPECIFIC hitbox.
             function isInsideHitbox(hitbox, canvasPos) {
                 if (canvasPos.x < hitbox.rightEdge && canvasPos.x > hitbox.leftEdge)
                     if (canvasPos.y > hitbox.upperEdge && canvasPos.y < hitbox.lowerEdge)
@@ -217,6 +290,17 @@
                 return false;
             }
 
+            // Returns the hitbox if inside it.
+            function getHitboxFromHere(canvasPos) {
+                for (let i = 0; i < list_hitboxes.length; i++) {
+                    let hitbox = list_hitboxes[i];
+                    if (isInsideHitbox(hitbox, canvasPos))
+                        return hitbox;
+                }
+                return null;
+            }
+
+            // Returns the nearest position outside the hitbox.
             function getPositionOutsideHitbox(hitbox, originalPos) {
                 // Get closest edge from originalPos.
                 let closestEdgePos = { x: originalPos.x, y: hitbox.upperEdgePos.y };
@@ -237,6 +321,18 @@
                     closestEdgePos = rightEdgePos;
 
                 return closestEdgePos;
+            }
+
+
+            // Activate a specific event for each Trigger.
+            function activateThisTrigger(trigger) {
+                // Go through all IDs.
+                if (trigger.id == "test_1")
+                    trigger.color = "pink";
+
+                trigger.color = "pink";
+                // Add this Trigger to the activated list to check for DEACTIVATION.
+                list_activeTriggers.push(trigger);
             }
 
             function distance(a, b) {
