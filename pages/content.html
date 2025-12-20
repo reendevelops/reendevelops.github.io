@@ -117,7 +117,7 @@
 
             // Starting position.
             let playerPos = new Vector2(active_scene.dict_entryPoints["spawn"].x, active_scene.dict_entryPoints["spawn"].y);
-            let moveSpeed = 0.5;
+            let moveSpeed = 400;
 
             // Mouse position.
             let mousePos = new Vector2(0, 0);
@@ -201,8 +201,14 @@
             });
 
 
+            // Time tracker.
+            let lastTime = performance.now();
+
             // Update loop.
-            function update() {
+            function update(currentTime) {
+                const deltaTime = (currentTime - lastTime) / 1000; // seconds
+                lastTime = currentTime;
+
                 // Resize canvas.
                 resizeCanvas();
 
@@ -218,16 +224,9 @@
                 ctx.save();
                 ctx.scale(scaleX, scaleY); 
 
-                // Always move the player towards the destination
-                const dx = destination.x - playerPos.x;
-                const dy = destination.y - playerPos.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Move the player towards destination.
+                movePlayer(destination, deltaTime);
 
-                // Move playerPos toward destination if not too close
-                if (distance > distanceAllowance) {
-                    playerPos.x += (dx / distance) * moveSpeed;
-                    playerPos.y += (dy / distance) * moveSpeed;
-                }
                 document.getElementById("position").innerHTML = "Player position: " + playerPos.x + ", " + playerPos.y;
 
                 // Detect if player ACTIVATES a Trigger hitbox.
@@ -287,6 +286,26 @@
                 requestAnimationFrame(update);
             }
 
+
+            // Move the player towards this destination.
+            function movePlayer(destination, deltaTime) {
+
+                // Always move the player towards the destination
+                const dx = destination.x - playerPos.x;
+                const dy = destination.y - playerPos.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Move playerPos toward destination if not too close
+                if (distance > distanceAllowance) {
+                    const dirX = dx / distance;
+                    const dirY = dy / distance;
+
+                    const step = moveSpeed * deltaTime;
+
+                    playerPos.x += dirX * step;
+                    playerPos.y += dirY * step;
+                }
+            }
 
             // Change the Scene to this.
             function changeScene(scene, entryPointID) {
