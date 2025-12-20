@@ -11,7 +11,7 @@
         <p id="mousePos">Mouse pos: </p>
         <p id="mouseTest">Mouse press: </p>
         <p id="position">Circle position: </p>
-        <p id="hitbox">Hitbox: </p>
+        <p id="log">Log: </p>
 
         <canvas id="mainCanvas" width="1920" height="1080"></canvas>
 
@@ -21,6 +21,35 @@
             const canvasHeight = 1080;
             const aspectRatio = canvasWidth / canvasHeight; // your fixed ratio (e.g., 800x450)
             const ctx = canvas.getContext("2d");
+
+
+            // Define a Scene.
+            class Scene {
+                constructor(id) {
+                    this.id = id;
+                }
+
+                // A scene must contain these variables:
+                // Background image URL.
+                background_image = "../img/journey1.png";
+
+                // List of Hitboxes/Triggers to render.
+                list_hitboxes = [];
+
+                // List of active Triggers for tracking.
+                list_activeTriggers = [];
+
+                // Dictionary of 'entry points' with specific id.
+                dict_entryPoints = {};
+            }
+
+            // Define a Vector2.
+            class Vector2 {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                }
+            }
 
             // Define a rect for hitboxes.
             class Hitbox {
@@ -52,35 +81,51 @@
             }
 
 
-            // [ HITBOXES ]
-            const list_hitboxes = [];
-            const list_activeTriggers = [];
-            const upperHitbox = new Hitbox("upperWall_1", 0, 0, 1920, 400, "black", true);
-            list_hitboxes.push(upperHitbox);
-            const testHitbox = new Hitbox("test_1", 100, 500, 100, 100, "blue", false);
-            list_hitboxes.push(testHitbox);
+            // [ SCENES ]
+            const list_scenes = [];
 
+            // Create Scene 1.
+            const scene_1 = new Scene("scene_1");
+            scene_1.background_image = "../img/journey1.png";
+            scene_1.list_hitboxes.push(new Hitbox("upperWall_1", 0, 0, 1920, 400, "black", true));
+            scene_1.list_hitboxes.push(new Hitbox("trigger_to_scene_2", 1800, 460, 100, 300, "blue", false));
+            scene_1.dict_entryPoints["spawn"] = new Vector2(950, 600);
+            scene_1.dict_entryPoints["from_scene_2"] = new Vector2(1700, 600);
+            list_scenes.push(scene_1);
 
-            document.getElementById("hitbox").innerHTML = "Hitbox: " + upperHitbox.upperEdge + " " + upperHitbox.lowerEdge + " " + upperHitbox.leftEdge + " " + upperHitbox.rightEdge;
+            // Create Scene 2.
+            const scene_2 = new Scene("scene_2");
+            scene_2.background_image = "../img/journey1.png";
+            scene_2.list_hitboxes.push(new Hitbox("upperWall_1", 0, 0, 1920, 360, "black", true));
+            scene_2.list_hitboxes.push(new Hitbox("upperWall_2", 0, 700, 1920, 380, "black", true));
+            scene_2.list_hitboxes.push(new Hitbox("trigger_test", 550, 355, 300, 50, "blue", false));
+            scene_2.list_hitboxes.push(new Hitbox("trigger_to_spawn", 60, 380, 100, 300, "blue", false));
+            scene_2.dict_entryPoints["spawn"] = new Vector2(200, 600);
+            list_scenes.push(scene_2);
+
+            // A temporary variable to refer to the current scene active.
+            let active_scene = scene_1;
+
+            // Active Scene reference variables.
+            let list_hitboxes = active_scene.list_hitboxes;
+            let list_activeTriggers = active_scene.list_activeTriggers;
+            const active_backgroundImage = new Image();
+
+            // Set background to initial Scene.
+            active_backgroundImage.src = active_scene.background_image;
 
 
             // Starting position.
-            let playerPos = { x: 190, y: 420 };
+            let playerPos = new Vector2(active_scene.dict_entryPoints["spawn"].x, active_scene.dict_entryPoints["spawn"].y);
             let moveSpeed = 0.5;
 
             // Mouse position.
-            let mousePos = { x: 0, y: 0 };
+            let mousePos = new Vector2(0, 0);
             let isPressed = false;
 
             // Destination position.
-            let destination = { x: playerPos.x, y: playerPos.y };
+            let destination = new Vector2(playerPos.x, playerPos.y);
             let distanceAllowance = 5; // how close is close enough
-
-
-            // Load the asset images.
-            const journey1 = new Image();
-            journey1.src = "../img/journey1.png";
-            journey1.onload = function () { requestAnimationFrame(update); };
 
 
             // Load the RIGHT player animation frames.
@@ -155,6 +200,8 @@
                 isPressed = false;
             });
 
+
+            // Update loop.
             function update() {
                 // Resize canvas.
                 resizeCanvas();
@@ -162,8 +209,8 @@
                 // Clear the previous frame.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // Resize assets to scale with canvas size.
-                resizeAssets();
+                // Draw the background image of the Scene.
+                ctx.drawImage(active_backgroundImage, 0, 0, canvas.width, canvas.height);
 
                 // Everything drawn now scales perfectly.
                 const scaleX = canvas.width / canvasWidth;
@@ -176,6 +223,12 @@
                 const dy = destination.y - playerPos.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
+                // Move playerPos toward destination if not too close
+                if (distance > distanceAllowance) {
+                    playerPos.x += (dx / distance) * moveSpeed;
+                    playerPos.y += (dy / distance) * moveSpeed;
+                }
+                document.getElementById("position").innerHTML = "Player position: " + playerPos.x + ", " + playerPos.y;
 
                 // Detect if player ACTIVATES a Trigger hitbox.
                 if (isInsideAHitbox(playerPos)) {
@@ -201,7 +254,6 @@
                     }
                 }
 
-
                 // Prevent the player from passing through Collider hitboxes.
                 if (isInsideACollider(playerPos)) {
                     let hitbox = getHitboxFromHere(playerPos);
@@ -209,14 +261,6 @@
                     // Set the new playerPos.
                     playerPos = getPositionOutsideHitbox(hitbox, playerPos);
                 }
-
-
-                // Move playerPos toward destination if not too close
-                if (distance > distanceAllowance) {
-                    playerPos.x += (dx / distance) * moveSpeed;
-                    playerPos.y += (dy / distance) * moveSpeed;
-                }
-                document.getElementById("position").innerHTML = "Player position: " + playerPos.x + ", " + playerPos.y;
 
                 // If player is heading left.
                 if (destination.x < playerPos.x)
@@ -231,19 +275,65 @@
                 ctx.fill();
 
                 // Draw the hitboxes.
-                drawAllHitbox(ctx);
+                drawAllHitbox();
+
+                // Draw the current Scene's entry points.
+                drawSceneEntryPoints();
 
                 // For the scaling.
                 ctx.restore();
 
-                // Call draw() again for the next frame.
+                // Call update() again for the next frame.
                 requestAnimationFrame(update);
             }
 
 
+            // Change the Scene to this.
+            function changeScene(scene, entryPointID) {
+                // Play a transition cover.
+
+                // Change background.
+                active_backgroundImage.src = scene.background_image;
+
+                // Change all Hitboxes/Triggers. (Seems to have done it automatically)
+                list_hitboxes = scene.list_hitboxes;
+                list_activeTriggers = scene.list_activeTriggers;
+
+                // Move the player to the starting position of that Scene.
+                playerPos = new Vector2(scene.dict_entryPoints[entryPointID].x, scene.dict_entryPoints[entryPointID].y);
+
+                // Stop movement by clearing destination.
+                destination = new Vector2(playerPos.x + distanceAllowance, playerPos.y);
+
+                // Deactivate all Triggers of the previous Scene.
+                active_scene.list_activeTrigger = [];
+
+                // Change the active scene variable.
+                active_scene = scene;
+            }
+
+            // Activate a specific event for each Trigger.
+            function activateThisTrigger(trigger) {
+                // Go through all IDs.
+                if (trigger.id == "trigger_to_scene_2") {
+                    changeScene(scene_2, "spawn");
+                }
+                else if (trigger.id == "trigger_to_spawn") {
+                    changeScene(scene_1, "from_scene_2");
+                }
+
+                trigger.color = "pink";
+                // Add this Trigger to the activated list to check for DEACTIVATION.
+                list_activeTriggers.push(trigger);
+            }
+
+            function log(text) {
+                document.getElementById("log").innerHTML = "Log: " + text;
+            }
+
 
             // Draw ALL hitboxes.
-            function drawAllHitbox(ctx) {
+            function drawAllHitbox() {
                 for (let i = 0; i < list_hitboxes.length; i++) {
                     let hitbox = list_hitboxes[i];
 
@@ -252,6 +342,17 @@
                     ctx.lineWidth = 2;
 
                     ctx.strokeRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+                }
+            }
+
+            // Draw ALL entry points of the current Scene.
+            function drawSceneEntryPoints() {
+                for (const [key, value] of Object.entries(active_scene.dict_entryPoints)) {
+                    // Set the default colors of entry points.
+                    ctx.strokeStyle = "green";
+                    ctx.lineWidth = 2;
+
+                    ctx.strokeRect(value.x, value.y, 50, 50);
                 }
             }
 
@@ -300,7 +401,8 @@
                 return null;
             }
 
-            // Returns the nearest position outside the hitbox.
+            // KNOWN BUGS:
+            // Trigger is not triggered when 
             function getPositionOutsideHitbox(hitbox, originalPos) {
                 // Get closest edge from originalPos.
                 let closestEdgePos = { x: originalPos.x, y: hitbox.upperEdgePos.y };
@@ -324,25 +426,11 @@
             }
 
 
-            // Activate a specific event for each Trigger.
-            function activateThisTrigger(trigger) {
-                // Go through all IDs.
-                if (trigger.id == "test_1")
-                    trigger.color = "pink";
-
-                trigger.color = "pink";
-                // Add this Trigger to the activated list to check for DEACTIVATION.
-                list_activeTriggers.push(trigger);
-            }
 
             function distance(a, b) {
                 let dx = b.x - a.x;
                 let dy = b.y - a.y;
                 return Math.sqrt(dx * dx + dy * dy);
-            }
-
-            function resizeAssets() {
-                ctx.drawImage(journey1, 0, 0, canvas.width, canvas.height);
             }
 
             function resizeCanvas() {
