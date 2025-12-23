@@ -456,6 +456,18 @@
             }
 
             function resizeCanvas() {
+
+                const dpr = window.devicePixelRatio || 1;
+
+                const rect = canvas.getBoundingClientRect();
+
+                // Set actual pixel resolution
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+
+                // Normalize coordinate system
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
                 const windowRatio = windowWidth / windowHeight;
@@ -474,17 +486,6 @@
                 canvas.style.position = "absolute";
                 canvas.style.left = `${(windowWidth - canvas.width) / 2}px`;
                 canvas.style.top = `${(windowHeight - canvas.height) / 2}px`;
-
-                const dpr = window.devicePixelRatio || 1;
-
-                const rect = canvas.getBoundingClientRect();
-
-                // Set actual pixel resolution
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-
-                // Normalize coordinate system
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
 
             // Start animation.
