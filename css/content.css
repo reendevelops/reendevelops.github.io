@@ -10,8 +10,10 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
     touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
+    touch-action: none;
 }
 
 .background {
@@ -25,6 +27,7 @@ html, body {
 
 canvas {
     border: 1px solid black;
+    touch-action: none;
 }
 
 </style>
