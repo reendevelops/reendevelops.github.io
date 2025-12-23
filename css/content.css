@@ -25,6 +25,7 @@ html, body {
 }
 
 canvas {
+    display: block;
     border: 1px solid black;
     touch-action: none;
 }
