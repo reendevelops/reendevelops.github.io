@@ -9,7 +9,7 @@
 <body>
     <div class="background">
 
-        <h1>Begin the journey!2</h1>
+        <h1>Begin the journey!3</h1>
         <p id="mousePos">Mouse pos: </p>
         <p id="mouseTest">Mouse press: </p>
         <p id="position">Circle position: </p>
@@ -289,6 +289,7 @@
             }
 
 
+
             // Move the player towards this destination.
             function movePlayer(destination, deltaTime) {
 
@@ -473,6 +474,17 @@
                 canvas.style.position = "absolute";
                 canvas.style.left = `${(windowWidth - canvas.width) / 2}px`;
                 canvas.style.top = `${(windowHeight - canvas.height) / 2}px`;
+
+                const dpr = window.devicePixelRatio || 1;
+
+                const rect = canvas.getBoundingClientRect();
+
+                // Set actual pixel resolution
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+
+                // Normalize coordinate system
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
 
             // Start animation.
