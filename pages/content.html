@@ -223,6 +223,8 @@
                 // Resize canvas.
                 resizeCanvas();
 
+                log(canvas.width + " " + canvas.height);
+
                 // Clear the previous frame.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -465,24 +467,39 @@
             }
 
             function resizeCanvas() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
                 const windowRatio = windowWidth / windowHeight;
 
+                let cssWidth, cssHeight;
+
                 if (windowRatio > aspectRatio) {
-                    // Window is wider than your ratio = match height
-                    canvas.height = windowHeight;
-                    canvas.width = windowHeight * aspectRatio;
+                    // Window is wider - match height
+                    cssHeight = windowHeight;
+                    cssWidth = windowHeight * aspectRatio;
                 } else {
-                    // Window is taller than your ratio = match width
-                    canvas.width = windowWidth;
-                    canvas.height = windowWidth / aspectRatio;
+                    // Window is taller - match width
+                    cssWidth = windowWidth;
+                    cssHeight = windowWidth / aspectRatio;
                 }
 
-                // Center the canvas.
+                // CSS size (layout)
+                canvas.style.width = `${cssWidth}px`;
+                canvas.style.height = `${cssHeight}px`;
+
+                // Internal resolution (quality)
+                canvas.width = cssWidth * dpr;
+                canvas.height = cssHeight * dpr;
+
+                // Reset transform & scale for DPR
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                // Center the canvas
                 canvas.style.position = "absolute";
-                canvas.style.left = `${(windowWidth - canvas.width) / 2}px`;
-                canvas.style.top = `${(windowHeight - canvas.height) / 2}px`;
+                canvas.style.left = `${(windowWidth - cssWidth) / 2}px`;
+                canvas.style.top = `${(windowHeight - cssHeight) / 2}px`;
             }
 
             function adjustResolution() {
