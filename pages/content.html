@@ -222,8 +222,7 @@
 
                 // Resize canvas.
                 resizeCanvas();
-
-                log(canvas.width + " " + canvas.height);
+                ctx.imageSmoothingEnabled = false;
 
                 // Clear the previous frame.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -276,9 +275,9 @@
 
                 // If player is heading left.
                 if (destination.x < playerPos.x)
-                    ctx.drawImage(playerImage_l1, playerPos.x - playerImage_l1.width / 4, playerPos.y - playerImage_l1.height / 2.5, playerImage_l1.width / 2, playerImage_l1.height / 2);
+                    ctx.drawImage(playerImage_l1, Math.round(playerPos.x - playerImage_l1.width / 4), Math.round(playerPos.y - playerImage_l1.height / 2.5), Math.round(playerImage_l1.width / 2), Math.round(playerImage_l1.height / 2));
                 else
-                    ctx.drawImage(playerImage_r1, playerPos.x - playerImage_r1.width / 4, playerPos.y - playerImage_r1.height / 2.5, playerImage_r1.width / 2, playerImage_r1.height / 2);
+                    ctx.drawImage(playerImage_r1, Math.round(playerPos.x - playerImage_l1.width / 4), Math.round(playerPos.y - playerImage_l1.height / 2.5), Math.round(playerImage_l1.width / 2), Math.round(playerImage_l1.height / 2));
 
                 // Draw a circle following the mouse
                 ctx.beginPath();
@@ -471,32 +470,36 @@
 
                 const windowWidth = window.innerWidth;
                 const windowHeight = window.innerHeight;
-                const windowRatio = windowWidth / windowHeight;
 
                 let cssWidth, cssHeight;
 
-                if (windowRatio > aspectRatio) {
-                    // Window is wider - match height
-                    cssHeight = windowHeight;
-                    cssWidth = windowHeight * aspectRatio;
-                } else {
-                    // Window is taller - match width
+                // MOBILE: always fit width
+                if (windowWidth < windowHeight) {
                     cssWidth = windowWidth;
                     cssHeight = windowWidth / aspectRatio;
                 }
+                // DESKTOP / LANDSCAPE
+                else {
+                    const windowRatio = windowWidth / windowHeight;
 
-                // CSS size (layout)
+                    if (windowRatio > aspectRatio) {
+                        cssHeight = windowHeight;
+                        cssWidth = windowHeight * aspectRatio;
+                    } else {
+                        cssWidth = windowWidth;
+                        cssHeight = windowWidth / aspectRatio;
+                    }
+                }
+
                 canvas.style.width = `${cssWidth}px`;
                 canvas.style.height = `${cssHeight}px`;
 
-                // Internal resolution (quality)
                 canvas.width = cssWidth * dpr;
                 canvas.height = cssHeight * dpr;
 
-                // Reset transform & scale for DPR
                 ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.imageSmoothingEnabled = false;
 
-                // Center the canvas
                 canvas.style.position = "absolute";
                 canvas.style.left = `${(windowWidth - cssWidth) / 2}px`;
                 canvas.style.top = `${(windowHeight - cssHeight) / 2}px`;
