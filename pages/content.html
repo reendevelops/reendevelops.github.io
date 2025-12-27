@@ -23,6 +23,7 @@
             const canvasHeight = 1080;
             const aspectRatio = canvasWidth / canvasHeight; // your fixed ratio (e.g., 800x450)
             const ctx = canvas.getContext("2d");
+            let currentTime = 0;
 
 
             // Define a Scene.
@@ -76,9 +77,51 @@
 
             // Define an animated image class.
             class Animation {
-                constructor(animationSpeed) {
-                    this.frames = [];
+                constructor(animationSpeed, framesSources) {
                     this.animationSpeed = animationSpeed;
+                    this.framesSources = framesSources;
+                }
+
+                frames = [];
+
+                startTime = 0;
+                bufferTime = 0;
+                currentFrame = 0;
+
+                start(currentTime) {
+                    this.startTime = currentTime;
+                    this.bufferTime = this.startTime;
+
+                    // Load the frames.
+                    for (let i = 0; i < this.framesSources.length; i++) {
+                        let newFrame = new Image();
+                        newFrame.src = this.framesSources[i];
+                        this.frames.push(newFrame);
+                    }
+                }
+
+                update(currentTime) {
+                    let elapsedTime = (currentTime - this.bufferTime) / 1000;
+
+                    // If elapsed time reaches animation speed time, go to next frame.
+                    if (elapsedTime >= this.animationSpeed) {
+                        this.goNextFrame();
+
+                        // Reset the buffer time to the current time.
+                        this.bufferTime = currentTime;
+                    }
+                }
+
+                goNextFrame() {
+                    let maxFrameIndex = this.frames.length - 1;
+                    this.currentFrame += 1;
+
+                    if (this.currentFrame > maxFrameIndex)
+                        this.currentFrame = 0;
+                }
+
+                getFrame() {
+                    return this.frames[this.currentFrame];
                 }
             }
 
@@ -120,6 +163,7 @@
             // Starting position.
             let playerPos = new Vector2(active_scene.dict_entryPoints["spawn"].x, active_scene.dict_entryPoints["spawn"].y);
             let moveSpeed = 400;
+            let isPlayerMoving = false;
 
             // Mouse position.
             let mousePos = new Vector2(0, 0);
@@ -130,45 +174,24 @@
             let distanceAllowance = 10; // how close is close enough
 
 
-            // Load the RIGHT player animation frames.
-            const playerImage_r1 = new Image();
-            const playerImage_r2 = new Image();
-            const playerImage_r3 = new Image();
-            const playerImage_r4 = new Image();
-            playerImage_r1.src = "../img/player_r1.png";
-            playerImage_r2.src = "../img/player_r2.png";
-            playerImage_r3.src = "../img/player_r3.png";
-            playerImage_r4.src = "../img/player_r4.png";
-            playerImage_r1.onload = function () { requestAnimationFrame(update); };
-            playerImage_r2.onload = function () { requestAnimationFrame(update); };
-            playerImage_r3.onload = function () { requestAnimationFrame(update); };
-            playerImage_r4.onload = function () { requestAnimationFrame(update); };
-            // Create the animation object.
-            const playerAnim_r = new Animation(0.2);
-            playerAnim_r.frames.push(playerImage_r1);
-            playerAnim_r.frames.push(playerImage_r2);
-            playerAnim_r.frames.push(playerImage_r3);
-            playerAnim_r.frames.push(playerImage_r4);
 
-            // Load the LEFT player animation frames.
-            const playerImage_l1 = new Image();
-            const playerImage_l2 = new Image();
-            const playerImage_l3 = new Image();
-            const playerImage_l4 = new Image();
-            playerImage_l1.src = "../img/player_l1.png";
-            playerImage_l2.src = "../img/player_l2.png";
-            playerImage_l3.src = "../img/player_l3.png";
-            playerImage_l4.src = "../img/player_l4.png";
-            playerImage_l1.onload = function () { requestAnimationFrame(update); };
-            playerImage_l2.onload = function () { requestAnimationFrame(update); };
-            playerImage_l3.onload = function () { requestAnimationFrame(update); };
-            playerImage_l4.onload = function () { requestAnimationFrame(update); };
-            // Create the animation object.
-            const playerAnim_l = new Animation(0.2);
-            playerAnim_l.frames.push(playerImage_l1);
-            playerAnim_l.frames.push(playerImage_l2);
-            playerAnim_l.frames.push(playerImage_l3);
-            playerAnim_l.frames.push(playerImage_l4);
+            // [ ANIMATIONS ]
+            const list_animations = [];
+
+            // Create the RIGHT player animation frames.
+            const playerAnim_r = new Animation(0.2,
+                ["../img/player_r1.png", "../img/player_r2.png", "../img/player_r3.png", "../img/player_r4.png"]
+            );
+            playerAnim_r.start(currentTime);    // Start the animation.
+            list_animations.push(playerAnim_r);
+
+            // Create the LEFT player animation frames.
+            const playerAnim_l = new Animation(0.2,
+                ["../img/player_l1.png", "../img/player_l2.png", "../img/player_l3.png", "../img/player_l4.png"]
+            );
+            playerAnim_l.start(currentTime);    // Start the animation.
+            list_animations.push(playerAnim_l);
+
 
 
             // Detect mouse movement.
@@ -223,8 +246,6 @@
                 // Resize canvas.
                 resizeCanvas();
 
-                log(canvas.width + " " + canvas.height);
-
                 // Clear the previous frame.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -274,11 +295,13 @@
                     playerPos = getPositionOutsideHitbox(hitbox, playerPos);
                 }
 
-                // If player is heading left.
-                if (destination.x < playerPos.x)
-                    ctx.drawImage(playerImage_l1, playerPos.x - playerImage_l1.width / 4, playerPos.y - playerImage_l1.height / 2.5, playerImage_l1.width / 2, playerImage_l1.height / 2);
-                else
-                    ctx.drawImage(playerImage_r1, playerPos.x - playerImage_r1.width / 4, playerPos.y - playerImage_r1.height / 2.5, playerImage_r1.width / 2, playerImage_r1.height / 2);
+                // Update all animations.
+                list_animations.forEach(animation => {
+                    animation.update(currentTime);
+                });
+
+                // Animate the player.
+                animatePlayer(destination.x, playerPos.x);
 
                 // Draw a circle following the mouse
                 ctx.beginPath();
@@ -300,6 +323,27 @@
             }
 
 
+            function animatePlayer(destinationX, playerPosX) {
+                let frame = null;
+
+                // Assigns the correct frame orientation.
+                if (destinationX < playerPosX) {
+                    if (isPlayerMoving)
+                        frame = playerAnim_l.getFrame();
+                    else
+                        frame = playerAnim_l.frames[0];
+                }
+                else {
+                    if (isPlayerMoving)
+                        frame = playerAnim_r.getFrame();
+                    else
+                        frame = playerAnim_r.frames[0];
+                }
+
+                // Draws the animation.
+                ctx.drawImage(frame, playerPos.x - frame.width / 4, playerPos.y - frame.height / 2.5, frame.width / 2, frame.height / 2);
+            }
+
 
             // Move the player towards this destination.
             function movePlayer(destination, deltaTime) {
@@ -309,7 +353,7 @@
                 const dy = destination.y - playerPos.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                // Move playerPos toward destination if not too close
+                // Move playerPos toward destination if not too close.
                 if (distance > distanceAllowance) {
                     const dirX = dx / distance;
                     const dirY = dy / distance;
@@ -318,7 +362,11 @@
 
                     playerPos.x += dirX * step;
                     playerPos.y += dirY * step;
+
+                    isPlayerMoving = true;
                 }
+                else
+                    isPlayerMoving = false;
             }
 
             // Change the Scene to this.
